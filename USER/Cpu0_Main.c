@@ -27,58 +27,34 @@
 float dataOutput1[14][14] = {0};
 float dataOutput2[6][12][12] = {0};
 float dataOutput3[6][6][6] = {0};
-float dataOutput4[50] = {2};
-float dataOutput5[10] = {0};
-extern uint8 dataInput[28][28];
+float dataOutput4[10]={0};
+extern float dataInput[28][28];
 extern float weightConv[6][3][3];
-extern float weightFc1[50][216];
-extern float weightFc2[10][50];
+extern float weightFc1[10][216];
 
-TensorI input ={
+Tensor input = {
                 .data = dataInput,
-                .dims = {1, 1, 28, 28}
-               };
-Tensor output1 =
-            {
+                .dims = {1, 1, 28, 28}};
+Tensor output1 = {
                 .data = dataOutput1,
-                .dims = {1, 1, 14, 14}
-            };
-Tensor output2 =
-            {
+                .dims = {1, 1, 14, 14}};
+Tensor output2 = {
                 .data = dataOutput2,
-                .dims = {1, 6, 12, 12}
-            };
-Tensor output3 =
-            {
+                .dims = {1, 6, 12, 12}};
+Tensor output3 = {
                 .data = dataOutput3,
                 .dims = {1, 6, 6, 6}
-            };
-Tensor output4 =
-            {
+                };
+Tensor output4 = {
                 .data = dataOutput4,
-                .dims = {1, 1, 1, 50}
-            };
-Tensor output5 =
-            {
-                .data = dataOutput5,
-                .dims = {1, 1, 1, 10}
-            };
-
-Tensor conv =
-            {
+                .dims = {1, 1, 1, 10}};
+Tensor conv = {
                 .data = weightConv,
-                .dims = {6, 1, 3, 3}
-            };
-Tensor fc1 =
-            {
+                .dims = {6, 1, 3, 3}};
+Tensor fc1 = {
                 .data = weightFc1,
-                .dims = {1, 1, 50, 216}
-            };
-Tensor fc2 =
-            {
-                .data = weightFc2,
-                .dims = {1, 1, 10, 50}
-            };
+                .dims = {1, 1, 10, 216}};
+
 
 
 float relu(float x)
@@ -90,7 +66,6 @@ float relu(float x)
 int core0_main(void)
 {
 	get_clk();
-
 
 	IfxCpu_emitEvent(&g_cpuSyncEvent);
 	IfxCpu_waitEvent(&g_cpuSyncEvent, 0xFFFF);
@@ -111,24 +86,16 @@ int core0_main(void)
 
 	    Dense(&output3, &output4, &fc1);
 
-	    for(int i = 0; i < 50; i++)
+	    for(int i = 0; i < 10; i++)
         {
 	        output4.data[i] = relu(output4.data[i]);
         }
-	    Dense(&output4, &output5, &fc2);
 
-	    for(int j = 0; j < 10; j++)
-	    {
-	        printf("%f ", output5.data[j]);
-	    }
-	    printf("\n");
-
-
-//        for(int j = 0; j < 100; j++)
-//        {
-//            printf("%f ", output2.data[j]);
-//        }
-
+//	    for(int j = 0; j < 10; j++)
+//	    {
+//	        printf("%f ", output4.data[j]);
+//	    }
+//	    printf("\n");
 	}
 }
 

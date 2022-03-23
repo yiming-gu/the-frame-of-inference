@@ -1,9 +1,9 @@
 #include "minst.h"
-#include "math.h"
 
 
 
-float Max(float x, float y, float z, float w);
+
+float Max(uint8 x, uint8 y, uint8 z, uint8 w);
 
 
 
@@ -25,7 +25,7 @@ void Conv(uint8 stride_h, uint8 stride_w, Tensor *input,Tensor *output, Tensor *
         {
             for (ow = 0; ow < OW; ++ow)
             {
-                float val = 0.0f;
+                float val = 0;
                 int   base_ow = ow * stride_w;
                 int   base_oh = oh * stride_h;
                 int   base_ss = oc * FC * FH * FW;
@@ -123,11 +123,12 @@ void Dense(Tensor* input, Tensor* output, Tensor* filter)
             i ++;
         }
     }
+
 }
 
 
 
-void MaxPool1(uint8 stride_h, uint8 stride_w, TensorI *input,Tensor *output)
+void MaxPool1(uint8 stride_h, uint8 stride_w, Tensor *input,Tensor *output)
 {
     uint8 OC = output->dims[1];
     uint8 OH = output->dims[2];
@@ -141,7 +142,7 @@ void MaxPool1(uint8 stride_h, uint8 stride_w, TensorI *input,Tensor *output)
         {
             for (ow = 0; ow < OW; ++ow)
             {
-//                float val = 0.0f;
+                float val = 0.0f;
                 int input_idx =
                         ow * stride_w +
                         oh * stride_h * IW +
@@ -150,12 +151,14 @@ void MaxPool1(uint8 stride_h, uint8 stride_w, TensorI *input,Tensor *output)
                         ow +
                         oh * OW +
                         oc * OH * OW;
-                output->data[output_idx] = Max(input->data[input_idx], input->data[input_idx+1], input->data[(input_idx+1)*IW], input->data[(input_idx+1)*IW+1]);
-//                 = val;
+                val = Max(input->data[input_idx], input->data[input_idx+1], input->data[input_idx+IW], input->data[input_idx+IW+1]);
+                output->data[output_idx] = val;
+
             }
         }
     }
 }
+
 void MaxPool2(uint8 stride_h, uint8 stride_w, Tensor *input,Tensor *output)
 {
     uint8 OC = output->dims[1];
@@ -179,7 +182,7 @@ void MaxPool2(uint8 stride_h, uint8 stride_w, Tensor *input,Tensor *output)
                         ow +
                         oh * OW +
                         oc * OH * OW;
-                output->data[output_idx] = Max(input->data[input_idx], input->data[input_idx+1], input->data[(input_idx+1)*IW], input->data[(input_idx+1)*IW+1]);
+                output->data[output_idx] = Max(input->data[input_idx], input->data[input_idx+1], input->data[input_idx+IW], input->data[input_idx+IW+1]);
 //                 = val;
             }
         }
@@ -188,7 +191,7 @@ void MaxPool2(uint8 stride_h, uint8 stride_w, Tensor *input,Tensor *output)
 
 
 
-float Max(float x, float y, float z, float w)
+float Max(uint8 x, uint8 y, uint8 z, uint8 w)
 {
     float res = x;
     if(y>res) res=y;
