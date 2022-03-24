@@ -26,11 +26,20 @@
 
 float dataOutput1[14][14] = {0};
 float dataOutput2[6][12][12] = {0};
-float dataOutput3[6][6][6] = {0};
-float dataOutput4[10]={0};
+float dataOutput3[3][10][10] = {0};
+float dataOutput4[50]={0};
+float dataOutput5[10]={0};
 extern float dataInput[28][28];
-extern float weightConv[6][3][3];
-extern float weightFc1[10][216];
+extern float weightConv1[6][3][3];
+extern float weightConv2[3][6][3][3];
+extern float weightFc1[50][300];
+extern float weightFc2[10][50];
+extern float biasFc1[50];
+extern float biasFc2[10];
+extern float biasConv1[6];
+extern float biasConv2[3];
+
+int res = 0;
 
 Tensor input = {
                 .data = dataInput,
@@ -43,17 +52,26 @@ Tensor output2 = {
                 .dims = {1, 6, 12, 12}};
 Tensor output3 = {
                 .data = dataOutput3,
-                .dims = {1, 6, 6, 6}
+                .dims = {1, 3, 10, 10}
                 };
 Tensor output4 = {
                 .data = dataOutput4,
+                .dims = {1, 1, 1, 50}};
+Tensor output5 = {
+                .data = dataOutput5,
                 .dims = {1, 1, 1, 10}};
-Tensor conv = {
-                .data = weightConv,
+Tensor conv1 = {
+                .data = weightConv1,
                 .dims = {6, 1, 3, 3}};
+Tensor conv2 = {
+                .data = weightConv2,
+                .dims = {3, 6, 3, 3}};
 Tensor fc1 = {
                 .data = weightFc1,
-                .dims = {1, 1, 10, 216}};
+                .dims = {1, 1, 50, 300}};
+Tensor fc2 = {
+                .data = weightFc2,
+                .dims = {1, 1, 10, 50}};
 
 
 
@@ -66,6 +84,7 @@ float relu(float x)
 int core0_main(void)
 {
 	get_clk();
+	gpio_init(P22_3, GPI, 1, PULLUP);
 
 	IfxCpu_emitEvent(&g_cpuSyncEvent);
 	IfxCpu_waitEvent(&g_cpuSyncEvent, 0xFFFF);
@@ -75,27 +94,32 @@ int core0_main(void)
 	{
 	    MaxPool1(2, 2, &input, &output1);
 
-	    Conv(1, 1, &output1, &output2, &conv);
+	    Conv(1, 1, &output1, &output2, &conv1, biasConv1);
 
 	    for(int i = 0; i < 864; i++)
         {
 	        output2.data[i] = relu(output2.data[i]);
         }
 
-	    MaxPool2(2, 2, &output2, &output3);
+	    Conv(1, 1, &output2, &output3, &conv2, biasConv2);
 
-	    Dense(&output3, &output4, &fc1);
+	    for(int i = 0; i < 300; i++)
+        {
+            output3.data[i] = relu(output3.data[i]);
+        }
 
-	    for(int i = 0; i < 10; i++)
+	    Dense(&output3, &output4, &fc1, biasFc1);
+
+	    for(int i = 0; i < 50; i++)
         {
 	        output4.data[i] = relu(output4.data[i]);
         }
 
-//	    for(int j = 0; j < 10; j++)
-//	    {
-//	        printf("%f ", output4.data[j]);
-//	    }
-//	    printf("\n");
+	    Dense(&output4, &output5, &fc2, biasFc2);
+
+	    res = FindMax(output5.data);
+
+        printf("%d\n", res);
 	}
 }
 
